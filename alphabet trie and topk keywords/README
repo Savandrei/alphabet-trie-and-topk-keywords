@@ -1,0 +1,120 @@
+Savlovschi Andrei-Bogdan, 311CB
+117/120 points
+
+
+I would like to start with specifying that most of the functions used for
+the double list and the heap are taken and modified from the laboratory or copied
+and modified between themselves.
+
+First, the "main" function is divided into 3 parts: initialization, command reading and
+deallocation. I will present the rest of the operations in groups, since it makes it
+easier to explain.
+
+
+1. ADD and ADDKW
+
+The difference between these functions is made at the beginning, which I will explain separately.
+
+Starting with ADD, it reads the ID, score, and keywords. If the ID already exists in the
+list, prints "EXISTS" and frees the data that was read.
+Otherwise it adds the file at the end of the double linked list.
+
+On the other hand, ADDKW goes through the linked list to search for the file taken as input.
+If it finds it, it reallocates the space used by keywords to make room for another one.
+
+At the end, both of them make use of "add_keyword_to_tree" and "add_refrence".
+(Apparently, I misspelled reference the entire time  in the code
+and only realized because it was highlighted with red in this README) 
+ 
+1.1 add_keyword_to_tree
+
+add_keyword_to_tree is a recursive function that builds the tree. It searches for the first
+letter of the keyword on the existing level of the tree, stopping if it reaches the end
+or would destroy the alphabetical order. If it ends up stopping, it creates 
+a cell downwards in the tree (a child) and passes the rest of the keyword as 
+the argument for the node created (ex: if the word was "algebra" it would 
+pass down "lgebra", then "gebra" and so on).
+When the remaining string is the null terminator, it ends.
+
+
+1.2 
+
+add_refrence is also a recursive function that searches for a letter in the tree, given
+the position of the letter in the word (the level in the tree). After checking if the
+word is completed, it inserts the reference to the file in the list of the cell.
+The insertion function is mostly the same as for any other linked list, with
+the only addition that it does it depending on the alphabetical order of the file names.
+
+
+
+2. DEL and DELKW 
+
+Similar to the previous group, these operations rely on 2 functions: delete_refrence and
+remove_empty_branches. Both of them are recursive, delete_refrence searches the tree,
+takes the list and removes the reference passed as a parameter from it and remove_empty_branches
+is pretty self explanatory, it removes all parts of the tree that are not useful, using
+the conditions recommended in the document.
+
+DEL:
+Searches the list for the given ID. If it's not there, prints NOT FOUND. Otherwise, calls
+delete_refrence and remove_empty_branches for every keyword.
+
+DELKW:
+Searches the list for the file. If it doesn't exist, prints NOT FOUND. If the keyword
+isn't in the file's list, it prints OK without changes. If it is found, calls 
+delete_refrence and remove_empty_branches for that specific keyword.
+
+
+
+3. FIND and TOPK
+
+
+FIND searches the tree for the characters of the keyword one by one. If it reaches
+a terminal node for that exact keyword, it prints the count of references and
+their file IDs (already in lexicographic order). If the keyword isn't in the tree,
+it prints EMPTY.
+
+
+TOPK works the same as FIND while getting to the terminal node. Then all the references
+at that node are inserted into a max-heap that compares first by score and then by alphabetical
+order. The first k elements are extracted from the heap and printed. If there are fewer
+than k results, all of them are printed. If there are none, EMPTY.
+
+All the heap functions used for TOPK are exactly the same as the ones I made in the
+laboratory, with the only thing changing being that I transformed the integers into
+references, and made another comparison function for the heap.
+
+
+
+4. PRINT
+
+Does a DFS traversal of the tree, going down first and then right at each level. The current
+keyword is built character by character in a buffer as the traversal goes deeper.
+Whenever a node with a non-empty reference list is reached, the accumulated keyword,
+the number of associated files and their IDs are printed. Because the siblings are kept in
+alphabetical order and the traversal always goes down before going right,
+the output naturally comes out in alphabetical order.
+
+
+5. PREFIX (bonus)
+
+PREFIX is just reusing code from the other operations. The code from "FIND prefix" gets
+the location of the prefix in the tree. Using that, with the algorithm from PRINT,
+I make a new list of all the references to the files , duplicates getting avoided
+by keeping the collected list sorted by ID and skipping references that are
+already in it. At the end it prints the count and the IDs.
+
+
+
+
+I think I managed to explain all of the operations. As in the last homework, I also made
+my own operations, "files" and "tree". "files" printed the double linked list to standard
+output (so I could see them even if I got a seg fault). "tree" was a modified version
+of the function to print the tree given in the lab, letting me see all the nodes of the
+tree, even the ones I failed to remove when needed. It also printed all the references
+to the given words so was extremely similar to PRINT. I removed them since they were not
+necessary but I still have them, saved.
+
+Thank you for your time and attention and I hope to get excused for having all the
+functions in a single .c file! I couldn't get the vscode debugger to work any other way,
+it helped me get rid of several hours of debugging manually.
