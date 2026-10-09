@@ -1,54 +1,117 @@
-# Alphabet Trie and Top-K Keywords
+# File Search and Inverted Indexing System
 
-A data structures project focused on implementing an **alphabet trie (prefix tree)** and using it to efficiently search and retrieve the Top-K keywords.
-
-The project explores how specialized data structures can improve keyword lookup and ranking compared with searching through a collection of words sequentially.
+An in-memory file indexing and keyword retrieval engine written in C. The application indexes documents using a multi-way retrieval tree (trie), maintains document records in a doubly linked list, and evaluates ranked queries via a binary max-heap.
 
 ## Overview
 
-A trie is a tree-based data structure in which each node represents a character. Words are stored as paths from the root, allowing multiple words to share common prefixes.
+The system associates individual files—defined by unique string identifiers and relevance scores—with collections of keywords. It supports dynamic insertions, removals, exact match lookups, top-$k$ ranked searches, full index serialization in lexicographical order, and prefix-based subtree searches.
 
-For example, the words `apple`, `application`, and `apply` share the prefix `appl`. A trie stores this common prefix only once, making it particularly useful for prefix-based operations.
+### Core Data Structures
 
-Building on this structure, the project explores Top-K keyword retrieval: identifying the best `K` keywords according to a ranking criterion.
+1. **Doubly Linked List (`TStart_End_List`, `TNextPrevCell`)**:
+   * Stores complete file metadata (`ID`, `score`, and the dynamic array of keywords).
+   * Maintains chronological insertion order while providing direct references to head and tail elements.
 
-## Key Concepts
+2. **Multi-Way Retrieval Tree / Trie (`TTCell`, `Ttree`)**:
+   * Implements a first-child (`down`), right-sibling (`right`) representation for keyword storage.
+   * Maintains sibling nodes in lexicographical order.
+   * Terminal character nodes contain a singly linked list (`TPCell`, `TPList`) storing direct pointers to records in the doubly linked list.
 
-### Alphabet Trie
+3. **Max-Heap (`THeap`)**:
+   * Implements a binary heap to process ranked queries (`TOPK`).
+   * Primary priority criterion: relevance score in descending order.
+   * Secondary tie-breaker: file identifier in lexicographical ascending order.
 
-A trie organizes words character by character.
+## Command Specifications and Implementation Details
 
-Its main advantages include:
-- **Efficient lookup:** Search for a word by following its characters through the tree.
-- **Prefix searching:** Find words sharing a given prefix without scanning the entire collection.
-- **Shared prefixes:** Store common character sequences only once.
-- **Structured storage:** Organize a collection of keywords according to their character sequences.
+### File and Keyword Insertion
 
-### Top-K Keywords
+* **`ADD <id> <score> <count> <keyword_1> ... <keyword_n>`**:
+  * Scans the doubly linked list to ensure the identifier is unique. If an identical identifier is encountered, the operation outputs `EXISTS` and frees temporary buffers.
+  * If unique, the record is appended to the tail of the list. Distinct keywords are added to the multi-way retrieval tree, and file pointers are appended to the corresponding terminal nodes.
 
-The Top-K problem consists of retrieving the `K` highest-ranked elements from a collection.
+* **`ADDKW <id> <keyword>`**:
+  * Locates the record matching the specified file identifier. If the record does not exist, the operation prints `NOT FOUND`.
+  * If the keyword is already associated with the file, the system prints `OK` with no state modifications.
+  * Otherwise, the keyword array is reallocated, the keyword is inserted into the trie, and the file pointer is linked to the trie's terminal node.
 
-Instead of returning every matching keyword, a Top-K operation selects only the best candidates according to a ranking criterion.
+### Deletion and Pruning
 
-This concept is useful in applications such as:
-- Search engines
-- Search suggestions and autocomplete
-- Keyword ranking
-- Information retrieval
-- Text processing
+* **`DEL <id>`**:
+  * Locates the file record in the list. Returns `NOT FOUND` if absent.
+  * Traverses each associated keyword in the retrieval tree, unlinking the corresponding file pointer.
+  * Prunes stale nodes using `remove_empty_branches`.
+  * Unlinks the file node from the doubly linked list and deallocates all associated dynamic memory.
 
-Combining a trie with a Top-K algorithm provides a foundation for exploring efficient keyword retrieval.
+* **`DELKW <id> <keyword>`**:
+  * Verifies the existence of the file identifier and keyword. If the file is missing, prints `NOT FOUND`. If the keyword is not associated with the file, prints `OK` without modifying internal state.
+  * Unlinks the file reference from the keyword's terminal node, prunes dead branches, shifts remaining keyword references, and decrements the keyword count.
 
-## Algorithms and Complexity
+* **Branch Pruning (`remove_empty_branches`)**:
+  * Traverses post-order through child and sibling pointers.
+  * Nodes that are not terminal for any keyword and possess no active child branches are removed and freed recursively.
 
-Let `L` represent the length of a searched word.
+### Retrieval and Ranking
 
-| Operation | Typical Time Complexity |
-|---|---|
-| Insert a word into a trie | O(L) |
-| Search for a word | O(L) |
-| Locate a prefix | O(L) |
+* **`FIND <keyword>`**:
+  * Traverses down matching character branches.
+  * If the keyword terminates at a valid terminal node, outputs the number of matches followed by file identifiers sorted in lexicographical order. If not found, prints `EMPTY`.
 
-These complexities assume that accessing a child node takes constant time.
+* **`TOPK <keyword> <k>`**:
+  * Traverses to the terminal node of the keyword.
+  * Inserts all matching file references into a max-heap.
+  * Extracts up to $\min(k, \text{total})$ elements based on score and identifier criteria. Prints `EMPTY` if no file matches exist.
 
-The complexity of Top-K retrieval depends on the implementation, the number of candidates, and the data structure used for ranking.
+### Index Traversal
+
+* **`PRINT`**:
+  * Performs a depth-first search (DFS) over the trie using `down` prior to `right`.
+  * Reconstructs candidate strings using an internal traversal buffer.
+  * Outputs each unique keyword followed by the count and identifiers of associated files. Because siblings are inserted in sorted order, output entries naturally follow lexicographical ordering.
+
+### Prefix Search
+
+* **`PREFIX <prefix>`**:
+  * Navigates to the node matching the final character of the given prefix.
+  * Recursively traverses all subtrees rooted at that node, collecting file references from encountered terminal nodes into an auxiliary list.
+  * Deduplicates matching file records and sorts them lexicographically. Outputs `EMPTY` if no matching keywords exist.
+
+## Build and Execution
+
+The program expects inputs from `indexare.in` and writes output directly to `indexare.out`.
+
+### Compilation Commands
+
+```
+# Compile search_index binary
+make build
+
+# Execute binary
+make run
+
+# Run memory diagnostics with Valgrind
+make valgrind
+
+# Clean object files and executables
+make clean
+
+# Generate project archive
+make pack
+```
+
+## Directory Structure
+
+```
+.
+|-- Makefile        # Compilation and utility directives
+|-- tema2.c         # Source implementation of data structures and algorithms
+|-- indexare.in     # Input file
+|-- indexare.out    # Output destination
+`-- README.md       # Project documentation
+```
+
+## Architectural Notes
+
+* **Unified Source File**: All data structures and routines reside within `tema2.c` to streamline compilation and targeted symbolic debugging.
+* **Pointer Decoupling**: Trie nodes store non-owning references to entries in the primary doubly linked list, avoiding duplicate allocations of file metadata.
+* **Resource Cleanup**: Explicit deallocation functions (`destroy_tree`, `destroy_NextPrevList`, `destroy_plist`, `Destroy_Heap`) ensure complete memory reclamation prior to termination.
