@@ -52,7 +52,3 @@ Let `L` represent the length of a searched word.
 These complexities assume that accessing a child node takes constant time.
 
 The complexity of Top-K retrieval depends on the implementation, the number of candidates, and the data structure used for ranking.
-
-## Repository
-
-[Alphabet Trie and Top-K Keywords](https://github.com/Savandrei/alphabet-trie-and-topk-keywords)
