@@ -53,43 +53,6 @@ These complexities assume that accessing a child node takes constant time.
 
 The complexity of Top-K retrieval depends on the implementation, the number of candidates, and the data structure used for ranking.
 
-## Technologies
-
-- Data structures and algorithms
-- Trie (prefix tree)
-- Top-K selection
-
-## Getting Started
-
-Clone the repository:
-
-\`\`\`bash
-git clone https://github.com/Savandrei/alphabet-trie-and-topk-keywords.git
-cd alphabet-trie-and-topk-keywords
-\`\`\`
-
-Follow the build and execution instructions appropriate for the project's implementation.
-
-## Project Goals
-
-The main goals of this project are to:
-
-- Understand how tries organize character sequences.
-- Explore efficient word and prefix lookup.
-- Implement or study Top-K keyword retrieval.
-- Analyze the time complexity of different operations.
-- Understand how data structures contribute to efficient search algorithms.
-
-## Possible Applications
-
-The concepts explored in this project can be applied to autocomplete systems, keyword suggestion tools, search engines, and other applications that need to retrieve relevant words efficiently.
-
-## Author
-
-**Savandrei**
-
-GitHub: [@Savandrei](https://github.com/Savandrei)
-
 ## Repository
 
 [Alphabet Trie and Top-K Keywords](https://github.com/Savandrei/alphabet-trie-and-topk-keywords)
